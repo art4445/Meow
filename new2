@@ -4323,6 +4323,12 @@ function autoComplete(str,curText)
 end
 
 CMDs = {}
+CMDs[#CMDs + 1] = {NAME = '--Мои команды--', DESC = ''}
+CMDs[#CMDs + 1] = {NAME = 'giveblocks', DESC = 'Выдает блоки'}
+CMDs[#CMDs + 1] = {NAME = 'antivoidon / avon', DESC = 'Отключает касания от невидимых партов'}
+CMDs[#CMDs + 1] = {NAME = 'kill [nickname]', DESC = 'Спавнит ракеты'}
+CMDs[#CMDs + 1] = {NAME = 'killstop', DESC = 'Отсанавливает спавн ракет'}
+CMDs[#CMDs + 1] = {NAME = '--Конец--', DESC = ''}
 CMDs[#CMDs + 1] = {NAME = 'discord / support / help', DESC = 'Invite to the Infinite Yield support server.'}
 CMDs[#CMDs + 1] = {NAME = 'console', DESC = 'Loads Roblox console'}
 CMDs[#CMDs + 1] = {NAME = 'oldconsole', DESC = 'Loads old Roblox console'}
@@ -12539,6 +12545,78 @@ end)
 
 
 
+local function disableParts(object)
+    -- Отключаем коллизии и удаляем TouchInterest
+    for _, d in ipairs(object:GetDescendants()) do
+        if d:IsA("BasePart") then
+            d.CanCollide = false
+            d.CanTouch = false
+        end
+        if d.Name == "TouchInterest" then
+            d:Destroy()
+        end
+    end
+end
+
+local function enableParts(object)
+    -- Включаем коллизии (TouchInterest не восстанавливаем)
+    for _, d in ipairs(object:GetDescendants()) do
+        if d:IsA("BasePart") then
+            d.CanCollide = true
+            d.CanTouch = true
+        end
+    end
+end
+
+local function findObjectByPath(path)
+    local current = game
+    for _, name in ipairs(path) do
+        local child = current:FindFirstChild(name)
+        if not child then
+            return nil
+        end
+        current = child
+    end
+    return current
+end
+
+local objectsToDisable = {
+    {"Workspace","Spawn1","Walls"},
+    {"Workspace","Spawn2","Walls"},
+    {"Workspace","Spawn3","Walls"},
+    {"Workspace","Spawn4","Walls"},
+    {"Workspace","Spawn5","Walls"},
+    {"Workspace","Spawn6","Walls"},
+    {"Workspace","Spawn7","Walls"},
+    {"Workspace","Spawn8","Walls"},
+    {"Workspace","tp","SpawnWalls"},
+    {"Workspace","Model","SpawnWalls"}
+}
+
+addcmd("antivoidon", {"avon"}, function(args, speaker)
+    workspace.FallenPartsDestroyHeight = -50000
+    local count = 0
+    for _, path in ipairs(objectsToDisable) do
+        local obj = findObjectByPath(path)
+        if obj then
+            disableParts(obj)
+            count += 1
+        end
+    end
+    notify("AntiVoid","Отключены коллизии у "..count.." объектов. Высота=-50000")
+end)
+
+addcmd("antivoidoff", {"avoff"}, function(args, speaker)
+    local count = 0
+    for _, path in ipairs(objectsToDisable) do
+        local obj = findObjectByPath(path)
+        if obj then
+            enableParts(obj)
+            count += 1
+        end
+    end
+    notify("AntiVoid","Восстановлены коллизии у "..count.." объектов. Высота остаётся -50000")
+end)
 
 
 
