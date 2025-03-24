@@ -11745,12 +11745,6 @@ function kill(speaker,target,fast)
 	end
 end
 
-addcmd('kill',{'fekill'},function(args, speaker)
-	local players = getPlayer(args[1], speaker)
-	for i,v in pairs(players) do
-		kill(speaker,Players[v])
-	end
-end)
 
 addcmd('handlekill', {'hkill'}, function(args, speaker)
 	if not firetouchinterest then
@@ -12482,23 +12476,64 @@ end)
 
 
 
-addcmd("delwalls", {"dw"}, function(args, speaker)
-local W = game.Workspace
-    W.Spawn1.Walls:Destroy()
-    W.Spawn2.Walls:Destroy()
-    W.Spawn3.Walls:Destroy()
-    W.Spawn4.Walls:Destroy()
-    W.Spawn5.Walls:Destroy()
-    W.Spawn6.Walls:Destroy()
-    W.Spawn7.Walls:Destroy()
-    W.Spawn8.Walls:Destroy()
+function kill(speaker, target, fast)
+
+    
+    local targetHRP = target.Character:FindFirstChild('Head') or target.Character:FindFirstChild('HumanoidRootPart')
+    local targetVelocity = targetHRP.Velocity
+    
+    local rocketSpeed = 0.5 -- Скорость ракеты
+
+
+    -- Предполагаемая позиция цели с учётом её скорости и ускорения
+    local futurePosition
+
+    -- Рассчитываем будущее положение цели с учетом скорости и ускорения
+    if targetVelocity.Magnitude > 0 then
+        futurePosition = targetHRP.Position + targetVelocity * rocketSpeed 
+    else
+        futurePosition = targetHRP.Position
+    end
+
+    -- Позиция спавна ракеты на расстоянии двух единичных векторов скорости от будущей позиции цели
+    local spawnPosition
+    if targetVelocity.Magnitude > 0 then
+        spawnPosition = futurePosition + (targetVelocity.Unit * 1)
+    else
+        -- Если скорость равна нулю, спавним ракету на небольшом расстоянии от цели
+        spawnPosition = futurePosition + Vector3.new(2, 2, 2)
+    end
+
+    -- Добавляем случайное отклонение
+    local randomVector = Vector3.new((math.random() - 0.5) * 1, (math.random() - 0.5) * 1, (math.random() - 0.5) * 1)
+    spawnPosition = spawnPosition + randomVector
+    
+    -- Запускаем ракету
+    game:GetService("Players").LocalPlayer.Backpack.RocketJumper.FireRocket:FireServer(futurePosition, spawnPosition)
+end
+
+local killbool = false
+
+addcmd('kill',{'fekill'},function(args, speaker)
+    if killServ then killServ:Disconnect() end
+	--local delay = tonumber(args[2]) or 0.003
+	--killbool = true
+    killServ = RunService.RenderStepped:Connect(function()
+	--while killbool do
+        local players = getPlayer(args[1], speaker)
+        for i, v in pairs(players) do
+			task.spawn(function(parameters)
+				kill(speaker, Players[v])
+			end)  
+        end
+		--wait(delay)
+	--end
+    end)
 end)
 
-
-
-
-addcmd('weaponclone', {'wpcln'}, function(args, speaker)
-game:GetService("Players").LocalPlayer.Backpack.SpectralSword.Parent = game:GetService("Players").LocalPlayer.Character
+addcmd("killstop", {}, function(args, speaker)
+    if killServ then killServ:Disconnect() end
+	--killbool = false
 end)
 
 
