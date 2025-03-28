@@ -12481,66 +12481,6 @@ end)
 
 
 
-function kill(speaker, target, fast)
-
-    
-    local targetHRP = target.Character:FindFirstChild('Head') or target.Character:FindFirstChild('HumanoidRootPart')
-    local targetVelocity = targetHRP.Velocity
-    
-    local rocketSpeed = 0.5 -- Скорость ракеты
-
-
-    -- Предполагаемая позиция цели с учётом её скорости и ускорения
-    local futurePosition
-
-    -- Рассчитываем будущее положение цели с учетом скорости и ускорения
-    if targetVelocity.Magnitude > 0 then
-        futurePosition = targetHRP.Position + targetVelocity * rocketSpeed 
-    else
-        futurePosition = targetHRP.Position
-    end
-
-    -- Позиция спавна ракеты на расстоянии двух единичных векторов скорости от будущей позиции цели
-    local spawnPosition
-    if targetVelocity.Magnitude > 0 then
-        spawnPosition = futurePosition + (targetVelocity.Unit * 1)
-    else
-        -- Если скорость равна нулю, спавним ракету на небольшом расстоянии от цели
-        spawnPosition = futurePosition + Vector3.new(2, 2, 2)
-    end
-
-    -- Добавляем случайное отклонение
-    local randomVector = Vector3.new((math.random() - 0.5) * 1, (math.random() - 0.5) * 1, (math.random() - 0.5) * 1)
-    spawnPosition = spawnPosition + randomVector
-    
-    -- Запускаем ракету
-    game:GetService("Players").LocalPlayer.Backpack.RocketJumper.FireRocket:FireServer(futurePosition, spawnPosition)
-end
-
-local killbool = false
-
-addcmd('firerocketkill',{'frkill'},function(args, speaker)
-    if killServ then killServ:Disconnect() end
-	--local delay = tonumber(args[2]) or 0.003
-	--killbool = true
-    killServ = RunService.RenderStepped:Connect(function()
-	--while killbool do
-        local players = getPlayer(args[1], speaker)
-        for i, v in pairs(players) do
-			task.spawn(function(parameters)
-				kill(speaker, Players[v])
-			end)  
-        end
-		--wait(delay)
-	--end
-    end)
-end)
-
-addcmd("firerocketstop", {"frstop"}, function(args, speaker)
-    if killServ then killServ:Disconnect() end
-	--killbool = false
-end)
-
 
 
 
